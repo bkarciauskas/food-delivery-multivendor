@@ -3,6 +3,16 @@ import createNextIntlPlugin from 'next-intl/plugin';
 const withNextIntl = createNextIntlPlugin();
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Optional same-origin GraphQL proxy for local demo stubs (see DEMO_SETUP.md).
+  async rewrites() {
+    if (process.env.DEMO_GRAPHQL_PROXY === '1') {
+      const target = (
+        process.env.DEMO_GRAPHQL_PROXY_TARGET || 'http://127.0.0.1:8001'
+      ).replace(/\/$/, '');
+      return [{ source: '/graphql', destination: `${target}/graphql` }];
+    }
+    return [];
+  },
   images: {
     dangerouslyAllowSVG: false,
     remotePatterns: [

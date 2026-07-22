@@ -143,6 +143,43 @@ Cypress (optional): `npm run cy:open` / `npm run cy:run` in either app.
 
 ---
 
+## Cloud / restricted-network fallback (local GraphQL stub)
+
+Use this **only** when `aws-server-v2.enatega.com` is unreachable (corporate firewall, Cursor Cloud egress allowlist, etc.). Presenters on a normal network should prefer the hosted API above.
+
+```bash
+# Terminal A — stub API on :8001
+node scripts/demo-graphql-stub.mjs
+
+# Customer web — same-origin proxy (avoids CSP blocking http://127.0.0.1:8001)
+cd enatega-multivendor-web
+cat > .env.local <<'EOF'
+DEMO_GRAPHQL_PROXY=1
+DEMO_GRAPHQL_PROXY_TARGET=http://127.0.0.1:8001
+NEXT_PUBLIC_SERVER_URL="http://localhost:3000/"
+NEXT_PUBLIC_WS_SERVER_URL="ws://localhost:3000/"
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=YOUR_BROWSER_KEY
+EOF
+npm run dev
+
+# Admin (optional) — proxy on :3001
+cd ../enatega-multivendor-admin
+cat > .env.local <<'EOF'
+DEMO_GRAPHQL_PROXY=1
+DEMO_GRAPHQL_PROXY_TARGET=http://127.0.0.1:8001
+NEXT_PUBLIC_SERVER_URL="http://localhost:3001/"
+NEXT_PUBLIC_WS_SERVER_URL="ws://localhost:3001/"
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=YOUR_BROWSER_KEY
+NEXT_PUBLIC_ADMIN_EMAIL=admin@demo.local
+NEXT_PUBLIC_ADMIN_PASSWORD=admin
+EOF
+PORT=3001 npm run dev
+```
+
+Stub demo login: `demo-customer@enatega.com` / `123123`. Admin login accepts any credentials against the stub.
+
+Why the proxy? Customer web CSP `connect-src` allows `'self' https: wss: ws:` but not arbitrary `http://127.0.0.1:8001`, so the browser cannot call the stub directly. `DEMO_GRAPHQL_PROXY=1` rewrites `/graphql` → the stub inside Next.js.
+
 ## Known issues / workarounds
 
 1. **Missing `.env.example` in older trees**  

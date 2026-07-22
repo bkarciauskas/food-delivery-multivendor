@@ -44,12 +44,12 @@ const useNearByRestaurantsPreview = (
 
   const groceriesData: IRestaurant[] =
     queryData?.filter(
-      (item) => item?.shopType?.toLowerCase() === "grocery"
+      (item) => item?.shopType?.toLowerCase() === "grocery",
     ) ?? [];
 
   const restaurantsData: IRestaurant[] =
     queryData?.filter(
-      (item) => item?.shopType?.toLowerCase() === "restaurant"
+      (item) => item?.shopType?.toLowerCase() === "restaurant",
     ) ?? [];
 
   return {

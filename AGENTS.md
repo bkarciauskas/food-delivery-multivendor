@@ -19,7 +19,7 @@ Mobile apps (`enatega-multivendor-app`, `-rider`, `-store`) need Expo/native too
 - **Package manager:** **npm** + `package-lock.json` only.
 - **Env files:** READMEs mention `.env.example`; also safe to `cp .env.dev .env.local` (already has `https://aws-server-v2.enatega.com/` + `wss://…`). `.env*.local` is gitignored.
 - **Maps:** set `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`. Without it the UI still boots; Maps provider is skipped. Admin code uses the `NEXT_PUBLIC_` name (not bare `GOOGLE_MAPS_API_KEY`).
-- **Egress:** Customer/admin GraphQL, images (`assets.enatega.com`), and login **require** outbound access to `*.enatega.com` / `aws-server-v2.enatega.com`. On restricted allowlists the Next apps start, but the browser shows `net::ERR_CONNECTION_RESET` and restaurants/login fail. Allow those hosts before expecting demo data.
+- **Egress:** Customer/admin GraphQL, images (`assets.enatega.com`), and login **require** outbound access to `*.enatega.com` / `aws-server-v2.enatega.com`. On restricted allowlists the Next apps start, but the browser shows `net::ERR_CONNECTION_RESET` and restaurants/login fail. Allow those hosts before expecting hosted demo data. Fallback: `node scripts/demo-graphql-stub.mjs` + `DEMO_GRAPHQL_PROXY=1` (see `DEMO_SETUP.md`). Direct browser calls to `http://127.0.0.1:8001` are blocked by customer-web CSP; the same-origin `/graphql` rewrite is required.
 - **Ports:** both Next apps default to `3000` — use `PORT=3001` for admin when web is already running.
 - **`npm install` husky:** from an app subdirectory, `prepare` may print `.git can't be found`; install still completes.
 - **Lint:** `npm run lint` in each app. Web may report existing warnings (0 errors); admin was clean at setup time.

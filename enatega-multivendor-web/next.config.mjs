@@ -27,6 +27,17 @@ const nextConfig = {
     });
     return config;
   },
+  // Optional same-origin GraphQL proxy for local demo stubs (see DEMO_SETUP.md).
+  // Enable with DEMO_GRAPHQL_PROXY=1 and point NEXT_PUBLIC_SERVER_URL at this app.
+  async rewrites() {
+    if (process.env.DEMO_GRAPHQL_PROXY === "1") {
+      const target = (
+        process.env.DEMO_GRAPHQL_PROXY_TARGET || "http://127.0.0.1:8001"
+      ).replace(/\/$/, "");
+      return [{ source: "/graphql", destination: `${target}/graphql` }];
+    }
+    return [];
+  },
   async headers() {
     return [
       {

@@ -1,0 +1,12 @@
+---
+description: Ensure pushes and pull requests target the user's fork, never upstream
+alwaysApply: true
+---
+
+# Fork-Only Git Operations
+
+- Push branches only to `bkarciauskas/food-delivery-multivendor` via the `origin` remote.
+- Create pull requests with both the head branch and base branch on `bkarciauskas/food-delivery-multivendor`.
+- Never push to or create pull requests against `enatega/food-delivery-multivendor` or the `upstream` remote.
+- Before creating a pull request, verify its destination repository explicitly.
+- If the intended fork or remote is ambiguous, ask before pushing or creating the pull request.

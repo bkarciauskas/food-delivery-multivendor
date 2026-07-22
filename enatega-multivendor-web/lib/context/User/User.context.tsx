@@ -746,7 +746,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = (props) => {
         const priceRaw = (item.variation as { price?: number | string })?.price ?? item.price ?? 0;
         const price = typeof priceRaw === 'string' ? parseFloat(priceRaw) : priceRaw;
         const quantity = item.quantity ?? 0;
-        return total + price;
+        return total + price * quantity;
       }, 0)
       .toFixed(2);
   }, [cart]);

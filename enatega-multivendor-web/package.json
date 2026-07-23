@@ -12,7 +12,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint .",
-    "test": "cross-env TS_NODE_COMPILER_OPTIONS={\"module\":\"CommonJS\",\"moduleResolution\":\"node\"} node --require ts-node/register/transpile-only --test tests/*.test.ts",
+    "test": "node --import ./tests/register.mjs --test tests/*.test.ts",
     "prettier": "prettier --write .",
     "prepare": "husky",
     "cy:open": "cypress open",

@@ -78,8 +78,14 @@ export default function GenericListingComponent({
     let filtered = [...(mainData ?? [])];
 
     if (tempFilters.cuisines.length > 0) {
+      // Filter chips store cuisine IDs; restaurant.cuisines is name strings.
+      const selectedCuisineNames = new Set(
+        cuisineData
+          .filter((cuisine) => tempFilters.cuisines.includes(cuisine._id))
+          .map((cuisine) => cuisine.name)
+      );
       filtered = filtered.filter((item) =>
-        item.cuisines.some((cuisine) => tempFilters.cuisines.includes(cuisine))
+        item.cuisines.some((cuisine) => selectedCuisineNames.has(cuisine))
       );
     }
 

@@ -20,7 +20,7 @@ test("cart subtotal multiplies each price by its quantity", () => {
       { price: 10, quantity: 3 },
       { price: 2.5, quantity: 2 },
     ]),
-    "35.00"
+    "35.00",
   );
 });
 
@@ -31,6 +31,6 @@ test("cart subtotal prefers variation prices and accepts persisted string prices
       { price: "3.50", quantity: 1 },
       { price: 100 },
     ]),
-    "18.00"
+    "18.00",
   );
 });

@@ -335,9 +335,10 @@ export default function FoodItemDetail(props: IFoodItemDetalComponentProps) {
           {CURRENCY_SYMBOL}
           {selectedVariation?.price.toFixed(2)}
         </p>
-        <p className="font-inter font-normal text-gray-500 dark:text-gray-300 text-[12px] md:text-[13px] lg:text-[14px] leading-[18px] md:leading-[20px]">
-          {foodItem?.description}
-        </p>
+        <p
+          className="font-inter font-normal text-gray-500 dark:text-gray-300 text-[12px] md:text-[13px] lg:text-[14px] leading-[18px] md:leading-[20px]"
+          dangerouslySetInnerHTML={{ __html: foodItem?.description ?? "" }}
+        />
 
         <Divider />
 

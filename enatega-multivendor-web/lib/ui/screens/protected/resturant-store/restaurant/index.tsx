@@ -761,9 +761,12 @@ export default function RestaurantDetailsScreen() {
                           )}
                         </div>
 
-                        <p className="text-gray-500 text-sm dark:text-gray-400 line-clamp-2 break-words">
-                          {meal.description}
-                        </p>
+                        <p
+                          className="text-gray-500 text-sm dark:text-gray-400 line-clamp-2 break-words"
+                          dangerouslySetInnerHTML={{
+                            __html: meal.description ?? "",
+                          }}
+                        />
 
                         <div className="flex items-center gap-2">
                                   <span className="text-secondary-color dark:text-primary-color text-base sm:text-lg font-semibold">

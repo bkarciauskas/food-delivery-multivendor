@@ -143,9 +143,12 @@ const InfoModal = ({ visible, onHide, restaurantInfo }: IInfoModalProps) => {
             </span>
           </div>
 
-          <p className="mb-6 text-xs font-normal md:text-[16px]">
-            {restaurantInfo.description}
-          </p>
+          <p
+            className="mb-6 text-xs font-normal md:text-[16px]"
+            dangerouslySetInnerHTML={{
+              __html: restaurantInfo.description ?? "",
+            }}
+          />
 
           {/* Address */}
           <div className="mb-6">

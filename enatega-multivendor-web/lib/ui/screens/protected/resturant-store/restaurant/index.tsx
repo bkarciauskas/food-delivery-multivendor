@@ -695,7 +695,7 @@ export default function RestaurantDetailsScreen() {
             {normalizedFilter && (
               <div className="flex items-center justify-between gap-3 text-sm text-gray-500 dark:text-gray-400">
                 <span>
-                  {deals.reduce((count, category) => count + category.foods.length, 0)} results
+                  {deals.length} results
                 </span>
                 <button
                   type="button"

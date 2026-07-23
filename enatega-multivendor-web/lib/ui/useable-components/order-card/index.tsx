@@ -72,7 +72,7 @@ const OrderCard: FC<IOrderCardProps> = ({
       return {
         _id: item.food ?? "",
         key: crypto.randomUUID(), // or any unique string generator
-        quantity: item.quantity ?? 1,
+        quantity: 1,
         variation: {
           _id:
             item.variation?._id ?? item.variation?.id ?? "defaultVariationId",

@@ -78,8 +78,19 @@ export default function GenericListingComponent({
     let filtered = [...(mainData ?? [])];
 
     if (tempFilters.cuisines.length > 0) {
+      const selectedCuisineNames = new Set(
+        tempFilters.cuisines
+          .map((id) => cuisineData.find((cuisine) => cuisine._id === id)?.name)
+          .filter((name): name is string => Boolean(name))
+          .map((name) => name.normalize("NFKC").toLocaleLowerCase())
+      );
+
       filtered = filtered.filter((item) =>
-        item.cuisines.some((cuisine) => tempFilters.cuisines.includes(cuisine))
+        item.cuisines.some((cuisine) =>
+          selectedCuisineNames.has(
+            cuisine.normalize("NFKC").toLocaleLowerCase()
+          )
+        )
       );
     }
 

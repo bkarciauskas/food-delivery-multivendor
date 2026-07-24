@@ -112,7 +112,9 @@ export default function GenericListingComponent({
     setcuisineData(cuisineDataFromHook);
 
     const hasActiveFilters =
-      filters.cuisines.length > 0 || filters.rating.length > 0;
+      filters.cuisines.length > 0 ||
+      filters.rating.length > 0 ||
+      sortBy !== "Recommended";
 
     setrestaurantData(
       hasActiveFilters

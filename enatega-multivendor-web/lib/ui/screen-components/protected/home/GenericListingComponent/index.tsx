@@ -96,8 +96,6 @@ export default function GenericListingComponent({
 
     // Apply sorting
     if (tempSortBy === "Distance") {
-      filtered.sort((a, b) => a.deliveryTime - b.deliveryTime);
-    } else if (tempSortBy === "Delivery Time") {
       filtered.sort((a, b) => {
         const [lonA, latA] = a.location.coordinates;
         const [lonB, latB] = b.location.coordinates;
@@ -106,6 +104,8 @@ export default function GenericListingComponent({
           getDistanceFromLatLonInKm(userLatitude, userLongitude, latB, lonB)
         );
       });
+    } else if (tempSortBy === "Delivery Time") {
+      filtered.sort((a, b) => a.deliveryTime - b.deliveryTime);
     } else if (tempSortBy === "Rating") {
       filtered.sort((a, b) => b.reviewAverage - a.reviewAverage);
     }

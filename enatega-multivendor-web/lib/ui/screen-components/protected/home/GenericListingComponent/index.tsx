@@ -1,7 +1,7 @@
 "use client";
 
 // ui/screens/GenericListingComponent.tsx
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import HomeHeadingSection from "@/lib/ui/useable-components/home-heading-section";
 import CuisinesSection from "@/lib/ui/useable-components/cuisines-section";
 import MainSection from "@/lib/ui/useable-components/restaurant-main-section";
@@ -9,6 +9,57 @@ import FilterModal from "@/lib/ui/useable-components/filter-modal";
 import { useLocationContext } from "@/lib/context/Location/Location.context";
 import { getDistanceFromLatLonInKm } from "@/lib/utils/methods";
 import { ICuisinesData, IRestaurant } from "@/lib/utils/interfaces";
+
+type ListingFilters = { cuisines: string[]; rating: string[] };
+
+function applyListingFilters(
+  data: IRestaurant[],
+  activeFilters: ListingFilters,
+  activeSortBy: string,
+  cuisineData: ICuisinesData[],
+  userLatitude: number,
+  userLongitude: number
+): IRestaurant[] {
+  let filtered = [...data];
+
+  if (activeFilters.cuisines.length > 0) {
+    const selectedCuisineNames = cuisineData
+      .filter((cuisine) => activeFilters.cuisines.includes(cuisine._id))
+      .map((cuisine) => cuisine.name);
+
+    filtered = filtered.filter((item) =>
+      item.cuisines.some((cuisine) => selectedCuisineNames.includes(cuisine))
+    );
+  }
+
+  if (activeFilters.rating.length > 0) {
+    filtered = filtered.filter((item) =>
+      activeFilters.rating.some((rating) => {
+        const num = Number(rating);
+        const lower = num;
+        const upper = num === 4 ? 5 : num + 0.99;
+        return item.reviewAverage >= lower && item.reviewAverage <= upper;
+      })
+    );
+  }
+
+  if (activeSortBy === "Distance") {
+    filtered.sort((a, b) => a.deliveryTime - b.deliveryTime);
+  } else if (activeSortBy === "Delivery Time") {
+    filtered.sort((a, b) => {
+      const [lonA, latA] = a.location.coordinates;
+      const [lonB, latB] = b.location.coordinates;
+      return (
+        getDistanceFromLatLonInKm(userLatitude, userLongitude, latA, lonA) -
+        getDistanceFromLatLonInKm(userLatitude, userLongitude, latB, lonB)
+      );
+    });
+  } else if (activeSortBy === "Rating") {
+    filtered.sort((a, b) => b.reviewAverage - a.reviewAverage);
+  }
+
+  return filtered;
+}
 
 interface GenericListingProps {
   headingTitle: string;
@@ -39,14 +90,14 @@ export default function GenericListingComponent({
   const [cuisineData, setcuisineData] = useState<ICuisinesData[]>([]);
   const [restaurantData, setrestaurantData] = useState<IRestaurant[]>([]);
   const [showDialog, setshowDialog] = useState(false);
-  const [filters, setFilters] = useState<{
-    cuisines: string[];
-    rating: string[];
-  }>({ cuisines: [], rating: [] });
-  const [tempFilters, setTempFilters] = useState<{
-    cuisines: string[];
-    rating: string[];
-  }>({ cuisines: [], rating: [] });
+  const [filters, setFilters] = useState<ListingFilters>({
+    cuisines: [],
+    rating: [],
+  });
+  const [tempFilters, setTempFilters] = useState<ListingFilters>({
+    cuisines: [],
+    rating: [],
+  });
   const [sortBy, setSortBy] = useState("Recommended");
   const [tempSortBy, setTempSortBy] = useState("Recommended");
 
@@ -54,12 +105,41 @@ export default function GenericListingComponent({
   const userLatitude = Number(location?.latitude || "0");
   const userLongitude = Number(location?.longitude || "0");
 
+  const hasActiveFilters =
+    filters.cuisines.length > 0 || filters.rating.length > 0;
+
+  const getFilteredRestaurants = useCallback(
+    (data: IRestaurant[]) =>
+      applyListingFilters(
+        data,
+        filters,
+        sortBy,
+        cuisineDataFromHook,
+        userLatitude,
+        userLongitude
+      ),
+    [
+      filters,
+      sortBy,
+      cuisineDataFromHook,
+      userLatitude,
+      userLongitude,
+    ]
+  );
+
   useEffect(() => {
-    if (mainData && cuisineDataFromHook) {
-      setcuisineData(cuisineDataFromHook);
-      setrestaurantData(mainData);
-    }
-  }, [mainData, cuisineDataFromHook]);
+    if (!mainData || !cuisineDataFromHook) return;
+
+    setcuisineData(cuisineDataFromHook);
+    setrestaurantData(
+      hasActiveFilters ? getFilteredRestaurants(mainData) : mainData
+    );
+  }, [
+    mainData,
+    cuisineDataFromHook,
+    hasActiveFilters,
+    getFilteredRestaurants,
+  ]);
 
   useEffect(() => {
     if (showDialog) {
@@ -74,43 +154,16 @@ export default function GenericListingComponent({
   const handleFilterApply = () => {
     setSortBy(tempSortBy);
     setFilters(tempFilters);
-
-    let filtered = [...(mainData ?? [])];
-
-    if (tempFilters.cuisines.length > 0) {
-      filtered = filtered.filter((item) =>
-        item.cuisines.some((cuisine) => tempFilters.cuisines.includes(cuisine))
-      );
-    }
-
-    if (tempFilters.rating.length > 0) {
-      filtered = filtered.filter((item) =>
-        tempFilters.rating.some((rating) => {
-          const num = Number(rating);
-          const lower = num;
-          const upper = num === 4 ? 5 : num + 0.99;
-          return item.reviewAverage >= lower && item.reviewAverage <= upper;
-        })
-      );
-    }
-
-    // Apply sorting
-    if (tempSortBy === "Distance") {
-      filtered.sort((a, b) => a.deliveryTime - b.deliveryTime);
-    } else if (tempSortBy === "Delivery Time") {
-      filtered.sort((a, b) => {
-        const [lonA, latA] = a.location.coordinates;
-        const [lonB, latB] = b.location.coordinates;
-        return (
-          getDistanceFromLatLonInKm(userLatitude, userLongitude, latA, lonA) -
-          getDistanceFromLatLonInKm(userLatitude, userLongitude, latB, lonB)
-        );
-      });
-    } else if (tempSortBy === "Rating") {
-      filtered.sort((a, b) => b.reviewAverage - a.reviewAverage);
-    }
-
-    setrestaurantData(filtered);
+    setrestaurantData(
+      applyListingFilters(
+        mainData ?? [],
+        tempFilters,
+        tempSortBy,
+        cuisineDataFromHook,
+        userLatitude,
+        userLongitude
+      )
+    );
     setshowDialog(false);
   };
 

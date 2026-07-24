@@ -12,6 +12,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint .",
+    "test:restaurant-hours": "node --test scripts/is-restaurant-open.test.cjs",
     "prettier": "prettier --write .",
     "prepare": "husky",
     "cy:open": "cypress open",

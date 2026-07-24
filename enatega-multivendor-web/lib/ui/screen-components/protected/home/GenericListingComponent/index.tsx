@@ -10,6 +10,58 @@ import { useLocationContext } from "@/lib/context/Location/Location.context";
 import { getDistanceFromLatLonInKm } from "@/lib/utils/methods";
 import { ICuisinesData, IRestaurant } from "@/lib/utils/interfaces";
 
+type ListingFilters = { cuisines: string[]; rating: string[] };
+
+function applyListingFilters(
+  data: IRestaurant[],
+  activeFilters: ListingFilters,
+  cuisines: ICuisinesData[],
+  sortBy: string,
+  userLatitude: number,
+  userLongitude: number
+): IRestaurant[] {
+  let filtered = [...data];
+
+  if (activeFilters.cuisines.length > 0) {
+    // Filter modal stores cuisine _ids; restaurants store cuisine names.
+    const selectedCuisineNames = cuisines
+      .filter((cuisine) => activeFilters.cuisines.includes(cuisine._id))
+      .map((cuisine) => cuisine.name);
+
+    filtered = filtered.filter((item) =>
+      item.cuisines.some((cuisine) => selectedCuisineNames.includes(cuisine))
+    );
+  }
+
+  if (activeFilters.rating.length > 0) {
+    filtered = filtered.filter((item) =>
+      activeFilters.rating.some((rating) => {
+        const num = Number(rating);
+        const lower = num;
+        const upper = num === 4 ? 5 : num + 0.99;
+        return item.reviewAverage >= lower && item.reviewAverage <= upper;
+      })
+    );
+  }
+
+  if (sortBy === "Distance") {
+    filtered.sort((a, b) => a.deliveryTime - b.deliveryTime);
+  } else if (sortBy === "Delivery Time") {
+    filtered.sort((a, b) => {
+      const [lonA, latA] = a.location.coordinates;
+      const [lonB, latB] = b.location.coordinates;
+      return (
+        getDistanceFromLatLonInKm(userLatitude, userLongitude, latA, lonA) -
+        getDistanceFromLatLonInKm(userLatitude, userLongitude, latB, lonB)
+      );
+    });
+  } else if (sortBy === "Rating") {
+    filtered.sort((a, b) => b.reviewAverage - a.reviewAverage);
+  }
+
+  return filtered;
+}
+
 interface GenericListingProps {
   headingTitle: string;
   cuisineSectionTitle: string;
@@ -55,11 +107,33 @@ export default function GenericListingComponent({
   const userLongitude = Number(location?.longitude || "0");
 
   useEffect(() => {
-    if (mainData && cuisineDataFromHook) {
-      setcuisineData(cuisineDataFromHook);
-      setrestaurantData(mainData);
-    }
-  }, [mainData, cuisineDataFromHook]);
+    if (!mainData || !cuisineDataFromHook) return;
+
+    setcuisineData(cuisineDataFromHook);
+
+    const hasActiveFilters =
+      filters.cuisines.length > 0 || filters.rating.length > 0;
+
+    setrestaurantData(
+      hasActiveFilters
+        ? applyListingFilters(
+            mainData,
+            filters,
+            cuisineDataFromHook,
+            sortBy,
+            userLatitude,
+            userLongitude
+          )
+        : mainData
+    );
+  }, [
+    mainData,
+    cuisineDataFromHook,
+    filters,
+    sortBy,
+    userLatitude,
+    userLongitude,
+  ]);
 
   useEffect(() => {
     if (showDialog) {
@@ -74,43 +148,16 @@ export default function GenericListingComponent({
   const handleFilterApply = () => {
     setSortBy(tempSortBy);
     setFilters(tempFilters);
-
-    let filtered = [...(mainData ?? [])];
-
-    if (tempFilters.cuisines.length > 0) {
-      filtered = filtered.filter((item) =>
-        item.cuisines.some((cuisine) => tempFilters.cuisines.includes(cuisine))
-      );
-    }
-
-    if (tempFilters.rating.length > 0) {
-      filtered = filtered.filter((item) =>
-        tempFilters.rating.some((rating) => {
-          const num = Number(rating);
-          const lower = num;
-          const upper = num === 4 ? 5 : num + 0.99;
-          return item.reviewAverage >= lower && item.reviewAverage <= upper;
-        })
-      );
-    }
-
-    // Apply sorting
-    if (tempSortBy === "Distance") {
-      filtered.sort((a, b) => a.deliveryTime - b.deliveryTime);
-    } else if (tempSortBy === "Delivery Time") {
-      filtered.sort((a, b) => {
-        const [lonA, latA] = a.location.coordinates;
-        const [lonB, latB] = b.location.coordinates;
-        return (
-          getDistanceFromLatLonInKm(userLatitude, userLongitude, latA, lonA) -
-          getDistanceFromLatLonInKm(userLatitude, userLongitude, latB, lonB)
-        );
-      });
-    } else if (tempSortBy === "Rating") {
-      filtered.sort((a, b) => b.reviewAverage - a.reviewAverage);
-    }
-
-    setrestaurantData(filtered);
+    setrestaurantData(
+      applyListingFilters(
+        mainData ?? [],
+        tempFilters,
+        cuisineDataFromHook,
+        tempSortBy,
+        userLatitude,
+        userLongitude
+      )
+    );
     setshowDialog(false);
   };
 

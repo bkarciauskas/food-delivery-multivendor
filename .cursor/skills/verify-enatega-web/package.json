@@ -1,0 +1,9 @@
+{
+  "name": "verify-enatega-web",
+  "private": true,
+  "type": "module",
+  "description": "Playwright helper deps for the verify-enatega-web skill (not part of the Next app).",
+  "dependencies": {
+    "playwright": "^1.51.0"
+  }
+}

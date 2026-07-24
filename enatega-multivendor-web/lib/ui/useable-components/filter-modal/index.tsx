@@ -40,15 +40,15 @@ export default function FilterModal({
     { name: t("sort_by_rating") },
   ];
 
-  const toggleCuisineSelection = (id: string) => {
+  const toggleCuisineSelection = (name: string) => {
     setTempFilters((prev) => {
-      const alreadySelected = prev.cuisines.includes(id);
+      const alreadySelected = prev.cuisines.includes(name);
       return {
         ...prev,
         cuisines:
           alreadySelected ?
-            prev.cuisines.filter((c) => c !== id)
-          : [...prev.cuisines, id],
+            prev.cuisines.filter((c) => c !== name)
+          : [...prev.cuisines, name],
       };
     });
   };
@@ -82,11 +82,11 @@ export default function FilterModal({
         <span className="text-xl font-semibold block">{t("filters")}</span>
         <div className="flex flex-wrap gap-2 pt-2 pb-2">
           {cuisineData.map((item) => {
-            const isSelected = tempFilters.cuisines.includes(item._id);
+            const isSelected = tempFilters.cuisines.includes(item.name);
             return (
               <Button
                 key={item._id}
-                onClick={() => toggleCuisineSelection(item._id)}
+                onClick={() => toggleCuisineSelection(item.name)}
                 className={`px-3 py-1 rounded-full text-sm border ${
                   isSelected
                     ? "bg-primary-color border-primary-color text-gray-900 dark:text-gray-900"

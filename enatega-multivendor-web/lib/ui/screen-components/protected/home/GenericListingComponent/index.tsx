@@ -54,12 +54,68 @@ export default function GenericListingComponent({
   const userLatitude = Number(location?.latitude || "0");
   const userLongitude = Number(location?.longitude || "0");
 
+  const normalizeCuisine = (value: string) =>
+    value?.toString().normalize("NFKC").toLocaleLowerCase() ?? "";
+
+  const applyFiltersAndSort = (
+    data: IRestaurant[],
+    activeFilters: { cuisines: string[]; rating: string[] },
+    activeSortBy: string
+  ) => {
+    let filtered = [...data];
+
+    if (activeFilters.cuisines.length > 0) {
+      const normalizedSelected = activeFilters.cuisines.map(normalizeCuisine);
+      filtered = filtered.filter((item) =>
+        item.cuisines.some((cuisine) =>
+          normalizedSelected.includes(normalizeCuisine(cuisine))
+        )
+      );
+    }
+
+    if (activeFilters.rating.length > 0) {
+      filtered = filtered.filter((item) =>
+        activeFilters.rating.some((rating) => {
+          const num = Number(rating);
+          const lower = num;
+          const upper = num === 4 ? 5 : num + 0.99;
+          return item.reviewAverage >= lower && item.reviewAverage <= upper;
+        })
+      );
+    }
+
+    if (activeSortBy === "Distance") {
+      filtered.sort((a, b) => a.deliveryTime - b.deliveryTime);
+    } else if (activeSortBy === "Delivery Time") {
+      filtered.sort((a, b) => {
+        const [lonA, latA] = a.location.coordinates;
+        const [lonB, latB] = b.location.coordinates;
+        return (
+          getDistanceFromLatLonInKm(userLatitude, userLongitude, latA, lonA) -
+          getDistanceFromLatLonInKm(userLatitude, userLongitude, latB, lonB)
+        );
+      });
+    } else if (activeSortBy === "Rating") {
+      filtered.sort((a, b) => b.reviewAverage - a.reviewAverage);
+    }
+
+    return filtered;
+  };
+
   useEffect(() => {
     if (mainData && cuisineDataFromHook) {
       setcuisineData(cuisineDataFromHook);
-      setrestaurantData(mainData);
+      const hasActiveFilters =
+        filters.cuisines.length > 0 ||
+        filters.rating.length > 0 ||
+        sortBy !== "Recommended";
+      setrestaurantData(
+        hasActiveFilters ?
+          applyFiltersAndSort(mainData, filters, sortBy)
+        : mainData
+      );
     }
-  }, [mainData, cuisineDataFromHook]);
+  }, [mainData, cuisineDataFromHook, filters, sortBy]);
 
   useEffect(() => {
     if (showDialog) {
@@ -74,43 +130,9 @@ export default function GenericListingComponent({
   const handleFilterApply = () => {
     setSortBy(tempSortBy);
     setFilters(tempFilters);
-
-    let filtered = [...(mainData ?? [])];
-
-    if (tempFilters.cuisines.length > 0) {
-      filtered = filtered.filter((item) =>
-        item.cuisines.some((cuisine) => tempFilters.cuisines.includes(cuisine))
-      );
-    }
-
-    if (tempFilters.rating.length > 0) {
-      filtered = filtered.filter((item) =>
-        tempFilters.rating.some((rating) => {
-          const num = Number(rating);
-          const lower = num;
-          const upper = num === 4 ? 5 : num + 0.99;
-          return item.reviewAverage >= lower && item.reviewAverage <= upper;
-        })
-      );
-    }
-
-    // Apply sorting
-    if (tempSortBy === "Distance") {
-      filtered.sort((a, b) => a.deliveryTime - b.deliveryTime);
-    } else if (tempSortBy === "Delivery Time") {
-      filtered.sort((a, b) => {
-        const [lonA, latA] = a.location.coordinates;
-        const [lonB, latB] = b.location.coordinates;
-        return (
-          getDistanceFromLatLonInKm(userLatitude, userLongitude, latA, lonA) -
-          getDistanceFromLatLonInKm(userLatitude, userLongitude, latB, lonB)
-        );
-      });
-    } else if (tempSortBy === "Rating") {
-      filtered.sort((a, b) => b.reviewAverage - a.reviewAverage);
-    }
-
-    setrestaurantData(filtered);
+    setrestaurantData(
+      applyFiltersAndSort(mainData ?? [], tempFilters, tempSortBy)
+    );
     setshowDialog(false);
   };
 

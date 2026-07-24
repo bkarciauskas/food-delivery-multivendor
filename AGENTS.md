@@ -25,3 +25,13 @@ Mobile apps (`enatega-multivendor-app`, `-rider`, `-store`) need Expo/native too
 - **Lint:** `npm run lint` in each app. Web may report existing warnings (0 errors); admin was clean at setup time.
 - **Demo customer login (from mobile autofill):** `demo-customer@enatega.com` / `123123`. Admin password is **not** in the repo.
 - Do **not** put `npm run dev`, builds, or migrations in the VM update script — only dependency refresh (`npm install` in the web/admin folders).
+
+### Bug-fix PRs — visual evidence required
+
+For UI / frontend bug fixes (especially Customer Web), do **not** open a PR until you have browser proof that the fix works.
+
+1. Reproduce against the hosted demo API on `enatega-multivendor-web`.
+2. Verify on a real browser path using **`.cursor/skills/verify-enatega-web`** and/or computer use — not GraphQL-only checks.
+3. Attach **before/after** screenshots (JPEG/PNG) to the PR. Include a computer-use recording when available.
+4. PR description must include an **`## Evidence`** section with those artifacts and the clicks / observations that prove the fix.
+5. Open PRs only to **`bkarciauskas/food-delivery-multivendor`** (never `enatega/food-delivery-multivendor` / `upstream`).
